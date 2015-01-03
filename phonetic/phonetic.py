@@ -161,9 +161,63 @@ class CharactersResult(object):
 		return self.pretty().encode("utf-8")
 		
 		
-		
 
-import codecs
+import urllib,urllib2,bs4
+
+
+_p = re.compile(u"\[ 粤　语 \]：(\s* *[a-z]+\d)+")
+_p2 = re.compile(u"[a-z]+\d")
+_p3 = re.compile(u"基本解释\n(.*)(?=笔画数)")
+
+# l = u"[ 粤　语 ]：zung1   zung3   ◎ 基本解释"
+# m = _p.search(l)
+# if m:
+# 	g = m.group()
+# 	print type(g)
+# 	print g.encode("utf-8")
+
+def fetch_pronunciation(char):
+	url = "http://ykyi.net/dict/index.php?" + urllib.urlencode({"char":char.encode("utf-8")})
+	# print char.encode("utf-8")
+	html = urllib2.urlopen(url).read()
+	# print html
+	s = bs4.BeautifulSoup(html, "lxml")
+	text = s.select("#coliseum")[0].text.strip()
+	# print text.encode("utf-8")
+	m = _p.search(text)
+	if m:
+		g = m.group()
+		# print g.encode("utf-8")
+		pronus = _p2.findall(g)
+		# print pronus
+	else:
+		return None
+
+	m = _p3.search(text)
+	if m:
+		g = m.group(1)
+		sp = re.split(char+"\s\w*\W*\w*\s",g)
+		# print len(sp)
+		# print sp
+		exps = []
+		for e in sp:
+			if not e:
+				continue
+			# print e.encode("utf-8")
+			exps.append(e.strip())
+		# print exps
+	plist = []
+	for p,e in map(None,pronus,exps):
+		if not p:
+			continue
+		pObj = Pronunciation(char,p,None,e)
+		plist.append(pObj)
+	return plist
+
+from codecs import open
+
+_p_chn_char = re.compile(u"[\u4e00-\u9fa5]")
+
 class NotationAdder(object):
 	"""docstring for NotationAdder"""
 	def __init__(self, datafile):
@@ -171,7 +225,7 @@ class NotationAdder(object):
 		self.datafile = datafile
 		char_map = {}
 		pronon_map = {}
-		lines = codecs.open(datafile,"r","utf-8").readlines()
+		lines = open(datafile,"r","utf-8").readlines()
 		for line in lines:
 			# print line
 			p = _parse_line(line)
@@ -206,6 +260,25 @@ class NotationAdder(object):
 		for c in in_str:
 			# print c.encode("utf-8")
 			plist = self.char_map.get(c)
+
+			if not plist and _p_chn_char.search(c):
+				try:
+					print "miss %s" % c.encode("utf-8")
+					plist = fetch_pronunciation(c)
+					self.char_map[c] = plist
+					with open(self.datafile,"a","utf-8") as f:
+						for p in plist:
+							exp = p.explanation
+							if not exp:
+								exp = u"暂无解析"
+							line = "%s\t%s\t%s\n" % (p.character,p.pronunciation,"")
+							print line.encode("utf-8")
+							f.write(line)
+				except Exception, e:
+					print "fetch %s pronunciation error" % c.encode("utf-8")
+					print e
+
+
 			if plist:
 				if len(plist) == 1:
 					rlist.append(plist[0].pronunciation)
@@ -242,7 +315,8 @@ class NotationAdder(object):
 		else:
 			return None
 
-_default = NotationAdder(path.join(_here, "data.txt"))
+_data_filepath = path.join(_here, "data.txt")
+_default = NotationAdder(_data_filepath)
 
 def get_notations_result(in_str):
 	return _default.get_notations_result(in_str)
@@ -259,7 +333,7 @@ if __name__ == '__main__':
 	# reload(sys)
 	# sys.setdefaultencoding("utf-8")
 	# print len(_default.char_map)
-	in_str = u"wo我唔钟意你"
+	in_str = u"哋嫲嚟噏咗着攞嗰嘢瞓吖啫攰氹冚啱麽嘞啲冧惗嗻抦囖嗮嘥乸憇唓甴曱走嘚嚿嗱揸實啩嚤綿埗唞関聼爲啉漱餸枧踭嗽孜噍喐揞摱掹孭凼馀噖螆绵实芪脷喼嫐氽嚡踎劏"
 	r = get_notations_result(in_str)
 	print(r)
 
