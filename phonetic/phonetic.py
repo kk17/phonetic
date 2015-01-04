@@ -270,8 +270,8 @@ class NotationAdder(object):
 						for p in plist:
 							exp = p.explanation
 							if not exp:
-								exp = u"暂无解析"
-							line = "%s\t%s\t%s\n" % (p.character,p.pronunciation,"")
+								exp = u"暂无解释"
+							line = "%s\t%s\t%s\n" % (p.character,p.pronunciation,exp)
 							print line.encode("utf-8")
 							f.write(line)
 				except Exception, e:
@@ -328,7 +328,9 @@ def get_characters_result(pronunciation):
 	return _default.get_characters_result(pronunciation)
 
 
-if __name__ == '__main__':
+
+
+def main():
 	# import sys
 	# reload(sys)
 	# sys.setdefaultencoding("utf-8")
@@ -337,10 +339,18 @@ if __name__ == '__main__':
 	r = get_notations_result(in_str)
 	print(r)
 
-	print("")
-	r = get_pronunciations_result(u"中")
-	print(r)
+	# print("")
+	# r = get_pronunciations_result(u"中")
+	# print(r)
 
-	print 
-	r = get_characters_result("zung1")
-	print(r)
+	# print 
+	# r = get_characters_result("zung1")
+	# print(r)
+
+def main2():
+	plist = fetch_pronunciation(u"哋")
+	for p in plist:
+		print p
+
+if __name__ == '__main__':
+	main()
