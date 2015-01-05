@@ -262,7 +262,7 @@ class NotationAdder(object):
 
 			#异读字
 			if p.variant:
-				lenp *= 0.5
+				lenp *= 0.05
 			#粤语用词
 			if p.cantonese:
 				lenp *= 2
@@ -270,7 +270,9 @@ class NotationAdder(object):
 			if p.specific:
 				lenp *= 0.6
 			if lenp > maxlen:
+				maxlen = lenp
 				longp = p
+			# print lenp,p
 		return longp
 
 	def get_notations(self, in_str):
@@ -353,7 +355,7 @@ def main():
 	# reload(sys)
 	# sys.setdefaultencoding("utf-8")
 	# print len(_default.char_map)
-	in_str = u"度"
+	in_str = u"屎窟"
 	r = get_notations_result(in_str)
 	print(r)
 
