@@ -245,15 +245,33 @@ class NotationAdder(object):
 		# print len(pronon_map)
 
 	def choose_one(self, plist,in_str):
+		maxlen = 0
+		longp = None
 		for p in plist:
+			lenp = 0
 			if p.use_cases:
 				for u in p.use_cases:
+					lenp += len(u)
 					if "(" in u:
 						i = u.index("(")
 						u = u[0:i]
 					if u in in_str:
 						return p
-		return plist[0]
+			if p.explanation:
+				lenp += len(p.explanation)
+
+			#异读字
+			if p.variant:
+				lenp *= 0.5
+			#粤语用词
+			if p.cantonese:
+				lenp *= 2
+			#人名，地名
+			if p.specific:
+				lenp *= 0.6
+			if lenp > maxlen:
+				longp = p
+		return longp
 
 	def get_notations(self, in_str):
 		rlist = []
@@ -335,7 +353,7 @@ def main():
 	# reload(sys)
 	# sys.setdefaultencoding("utf-8")
 	# print len(_default.char_map)
-	in_str = u"哋嫲嚟噏咗着攞嗰嘢瞓吖啫攰氹冚啱麽嘞啲冧惗嗻抦囖嗮嘥乸憇唓甴曱走嘚嚿嗱揸實啩嚤綿埗唞関聼爲啉漱餸枧踭嗽孜噍喐揞摱掹孭凼馀噖螆绵实芪脷喼嫐氽嚡踎劏"
+	in_str = u"度"
 	r = get_notations_result(in_str)
 	print(r)
 
@@ -348,7 +366,7 @@ def main():
 	# print(r)
 
 def main2():
-	plist = fetch_pronunciation(u"哋")
+	plist = fetch_pronunciation(u"度")
 	for p in plist:
 		print p
 
